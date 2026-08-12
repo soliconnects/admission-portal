@@ -257,12 +257,12 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'dashboard_url' => '/',
     'logout_url' => 'logout',
-    'login_url' => 'login',
+    'login_url' => 'admlogin',
     'register_url' => 'register',
-    'password_reset_url' => 'password/reset',
-    'password_email_url' => 'password/email',
+    'password_reset_url' => 'forgot-password',
+    'password_email_url' => 'forgot-password',
     'profile_url' => false,
     'disable_darkmode_routes' => false,
 

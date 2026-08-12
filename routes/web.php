@@ -7,7 +7,19 @@ use App\Http\Controllers\Student\DashboardController as StudentDashboardControll
 use App\Http\Controllers\ParentPortal\DashboardController as ParentDashboardController;
 
 Route::get('/', function () {
-    return view('welcome');
+    if (! auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    $user = auth()->user();
+
+    return match (true) {
+        $user->hasRole('admin') => redirect()->route('admin.dashboard'),
+        $user->hasRole('teacher') => redirect()->route('teacher.dashboard'),
+        $user->hasRole('student') => redirect()->route('student.dashboard'),
+        $user->hasRole('parent') => redirect()->route('parent.dashboard'),
+        default => redirect()->route('login'),
+    };
 });
 
 Route::middleware('auth')->group(function () {
