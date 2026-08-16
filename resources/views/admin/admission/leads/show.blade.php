@@ -32,7 +32,6 @@
                 <tr><th>Previous School</th><td>{{ $lead->previous_school }}</td></tr>
                 <tr><th>Lead Source</th><td>{{ $lead->lead_source }}</td></tr>
                 <tr><th>Status</th><td>{{ ucfirst(str_replace('_',' ', $lead->status)) }}</td></tr>
-                <tr><th>Duplicate?</th><td>{{ $lead->is_duplicate ? 'Yes (possible match: ' . ($lead->duplicateOfStudent->name ?? '-') . ')' : 'No' }}</td></tr>
             </table>
         </div>
     </div>
@@ -53,6 +52,10 @@
                                         <option value="{{ $class->id }}">{{ $class->name }} {{ $class->section }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Remarks (optional)</label>
+                                <textarea name="admin_remarks" class="form-control" rows="2"></textarea>
                             </div>
                             <button type="submit" class="btn btn-success" onclick="return confirm('Admit this student directly?')">Admit Student</button>
                         </form>
