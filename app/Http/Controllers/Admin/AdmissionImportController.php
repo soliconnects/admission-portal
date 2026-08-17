@@ -39,9 +39,9 @@ class AdmissionImportController extends Controller
         Excel::import($importer, $request->file('file'));
 
         $import->update([
-            'total_rows' => $importer->newLeadsCount + $importer->duplicateCount,
+            'total_rows' => $importer->newLeadsCount,
             'new_leads_count' => $importer->newLeadsCount,
-            'duplicate_count' => $importer->duplicateCount,
+            'duplicate_count' => 0,
             'status' => 'completed',
         ]);
 
@@ -59,7 +59,7 @@ class AdmissionImportController extends Controller
 
         return redirect()
             ->route('admin.admission.leads.index')
-            ->with('success', "Import complete: {$importer->newLeadsCount} new leads, {$importer->duplicateCount} duplicates flagged.");
+            ->with('success', "Import complete: {$importer->newLeadsCount} new leads imported.");
     } catch (\Throwable $e) {
         $import->update(['status' => 'failed']);
         return back()->withErrors(['file' => 'Import failed: ' . $e->getMessage()]);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdmissionLead;
+use App\Models\AdmissionAuditLog;
 use App\Models\ClassRoom;
 use App\Models\Teacher;
 use App\Models\User;
@@ -17,7 +18,7 @@ class AdmissionLeadController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AdmissionLead::with(['import', 'assignedTeacher', 'duplicateOfStudent']);
+        $query = AdmissionLead::with(['import', 'assignedTeacher']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -39,7 +40,7 @@ class AdmissionLeadController extends Controller
 
     public function show(AdmissionLead $lead)
     {
-        $lead->load(['import', 'assignedTeacher', 'duplicateOfStudent.parents']);
+        $lead->load(['import', 'assignedTeacher']);
         $classes = ClassRoom::orderBy('name')->get();
         $teachers = Teacher::orderBy('name')->get();
 
@@ -68,6 +69,25 @@ class AdmissionLeadController extends Controller
                 'decided_by' => auth()->id(),
                 'decided_at' => now(),
                 'resulting_student_id' => $student->id,
+            ]);
+
+            $class = $student->classRoom;
+
+            AdmissionAuditLog::create([
+                'lead_id' => $lead->id,
+                'student_id' => $student->id,
+                'student_name' => $lead->student_name,
+                'dob' => $lead->dob,
+                'gender' => $lead->gender,
+                'parent_name' => $lead->parent_name,
+                'parent_phone' => $lead->parent_phone,
+                'applied_class_text' => $lead->applied_class_text,
+                'class_id' => $class?->id,
+                'class_name' => $class?->name,
+                'class_section' => $class?->section,
+                'admitted_by' => auth()->id(),
+                'admitted_at' => now(),
+                'admin_remarks' => $request->admin_remarks,
             ]);
         });
 
