@@ -20,7 +20,8 @@ class AdmissionLeadsImport implements ToModel, WithHeadingRow, WithValidation, S
 
     protected AdmissionImport $import;
     public int $newLeadsCount = 0;
-    public int $duplicateCount = 0;
+
+    protected array $seenInFile = [];
 
     public function __construct(AdmissionImport $import)
     {
@@ -33,20 +34,11 @@ class AdmissionLeadsImport implements ToModel, WithHeadingRow, WithValidation, S
             ? ExcelDate::excelToDateTimeObject($row['date_of_birth'])
             : (!empty($row['date_of_birth']) ? Carbon::parse($row['date_of_birth']) : null);
 
-        $existingStudent = Student::where('name', $row['student_name'])
-            ->when($dob, fn($q) => $q->whereDate('dob', $dob))
-            ->whereHas('parents', function ($q) use ($row) {
-                $q->where('phone', isset($row['parent_phone']) ? (string) $row['parent_phone'] : null);
-            })
-            ->first();
-
-        $isDuplicate = (bool) $existingStudent;
-
-        if ($isDuplicate) {
-            $this->duplicateCount++;
-        } else {
-            $this->newLeadsCount++;
+        if ($this->isDuplicate($row, $dob)) {
+            return null;
         }
+
+        $this->newLeadsCount++;
 
         return new AdmissionLead([
             'import_id' => $this->import->id,
@@ -60,9 +52,7 @@ class AdmissionLeadsImport implements ToModel, WithHeadingRow, WithValidation, S
             'address' => $row['address'] ?? null,
             'previous_school' => $row['previous_school'] ?? null,
             'lead_source' => $row['lead_source'] ?? null,
-            'is_duplicate' => $isDuplicate,
-            'duplicate_of_student_id' => $existingStudent?->id,
-            'status' => $isDuplicate ? 'duplicate' : 'new',
+            'status' => 'new',
         ]);
     }
 
@@ -72,5 +62,39 @@ class AdmissionLeadsImport implements ToModel, WithHeadingRow, WithValidation, S
             'student_name' => 'required|string|max:255',
             'parent_phone' => 'required',
         ];
+    }
+
+    protected function isDuplicate(array $row, ?\DateTime $dob): bool
+    {
+        $phone = isset($row['parent_phone']) ? (string) $row['parent_phone'] : null;
+
+        $matches = function ($query) use ($row, $dob, $phone) {
+            return $query->where('student_name', $row['student_name'])
+                ->when($dob, fn($q) => $q->whereDate('dob', $dob))
+                ->where('parent_phone', $phone);
+        };
+
+        $existsAsStudent = Student::where('name', $row['student_name'])
+            ->when($dob, fn($q) => $q->whereDate('dob', $dob))
+            ->whereHas('parents', fn($q) => $q->where('phone', $phone))
+            ->exists();
+
+        if ($existsAsStudent) {
+            return true;
+        }
+
+        if ($matches(AdmissionLead::query())->exists()) {
+            return true;
+        }
+
+        $key = strtolower(trim((string) $row['student_name'])) . '|' . $phone . '|' . ($dob ? $dob->format('Y-m-d') : '');
+
+        if (isset($this->seenInFile[$key])) {
+            return true;
+        }
+
+        $this->seenInFile[$key] = true;
+
+        return false;
     }
 }

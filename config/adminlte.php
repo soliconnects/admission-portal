@@ -329,12 +329,6 @@ return [
             'can' => 'view-all-leads',
         ],
         [
-            'text' => 'Admission Imports',
-            'route' => 'admin.admission.imports.index',
-            'icon' => 'fas fa-fw fa-file-excel',
-            'can' => 'import-admission-leads',
-        ],
-        [
             'text' => 'Admission Leads',
             'route' => 'admin.admission.leads.index',
             'icon' => 'fas fa-fw fa-user-graduate',

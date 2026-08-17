@@ -28,7 +28,6 @@
                         <th>Uploaded By</th>
                         <th>Total Rows</th>
                         <th>New Leads</th>
-                        <th>Duplicates</th>
                         <th>Status</th>
                         <th>Date</th>
                     </tr>
@@ -40,12 +39,11 @@
                             <td>{{ $import->uploadedBy->name ?? '-' }}</td>
                             <td>{{ $import->total_rows }}</td>
                             <td>{{ $import->new_leads_count }}</td>
-                            <td>{{ $import->duplicate_count }}</td>
                             <td><span class="badge badge-{{ $import->status === 'completed' ? 'success' : ($import->status === 'failed' ? 'danger' : 'warning') }}">{{ $import->status }}</span></td>
                             <td>{{ $import->created_at->format('d M Y, h:i A') }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center">No imports yet.</td></tr>
+                        <tr><td colspan="6" class="text-center">No imports yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>
